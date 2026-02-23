@@ -40,6 +40,7 @@ export default function App() {
   const [branch, setBranch] = useState("dev");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [skipValidation, setSkipValidation] = useState(false);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -64,27 +65,12 @@ export default function App() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
     fetchLogs();
     const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
-
-  useEffect(() => {
-    if (messages.length > 1) {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
 
   const handleBrowse = async (path?: string) => {
     setLoading(true);
@@ -136,13 +122,15 @@ export default function App() {
     setError(null);
     addMessage("agent", "Initializing Input Agent. Validating repository path and remote connectivity...");
     try {
-      await api.init(localPath, repoUrl, branch);
+      if (!skipValidation) {
+        await api.init(localPath, repoUrl, branch);
+      }
       addMessage("agent", "Initialization successful. Passing control to Sync Agent.");
       setStep("verify");
       handleVerify();
     } catch (err: any) {
       const msg = err.message.includes("Path does not exist") 
-        ? `Validation Error: The path "${localPath}" was not found on the server. Please use the 'Browse' button to select a directory within the agent's environment (e.g., /app/applet).`
+        ? `Cloud Security Restriction: The path "${localPath}" is on your local Windows machine. This cloud-based agent cannot access your private files directly. Please use the 'Browse' button to select a folder in the agent's environment, or enable 'Skip Validation' to proceed with AI analysis only.`
         : err.message;
       setError(msg);
       addMessage("agent", `Initialization failed: ${msg}`);
@@ -354,6 +342,20 @@ export default function App() {
                       />
                     </div>
                   </div>
+                  
+                  <div className="flex items-center justify-between px-2">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        checked={skipValidation}
+                        onChange={(e) => setSkipValidation(e.target.checked)}
+                        className="w-3 h-3 rounded border-[#333] bg-black text-[#F27D26] focus:ring-[#F27D26]"
+                      />
+                      <span className="text-[9px] uppercase tracking-widest opacity-40 group-hover:opacity-100 transition-opacity">Skip Path Validation (Demo Mode)</span>
+                    </label>
+                    <p className="text-[9px] opacity-30 italic">Cloud preview cannot access local C:\ drives</p>
+                  </div>
+
                   <button 
                     onClick={handleInit}
                     disabled={loading || !localPath || !repoUrl}
