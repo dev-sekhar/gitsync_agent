@@ -1,8 +1,44 @@
-node_modules/
-build/
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
 dist/
-coverage/
-.DS_Store
-*.log
-.env*
+build/
+.eggs/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
 !.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App logs and test artifacts (generated at runtime)
+sync-agent/audit/
+test_output.txt
+
+# Old TypeScript / Node artefacts (queued for removal)
+to_be_deleted/
+node_modules/
