@@ -1,0 +1,5 @@
+{
+  "name": "GitSync Agent",
+  "description": "Automated Git synchronization and cleanup agent with AI-powered diff analysis and audit logging.",
+  "requestFramePermissions": []
+}
